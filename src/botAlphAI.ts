@@ -1,46 +1,45 @@
-const { Client, Message, LocalAuth, MessageMedia } = require('whatsapp-web.js');
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const socketIO = require('socket.io');
-const qrcode = require('qrcode');
-const http = require('http');
-const fileUpload = require('express-fileupload');
-const axios = require('axios');
-const mime = require('mime-types');
-const port = process.env.PORT || 8000;
-const app = express();
+import pkg from 'whatsapp-web.js';
+const { Client, LocalAuth } = pkg;
+import express from 'express';
+import http  from 'http';
+import socketIO from 'socket.io';
+import qrcode from 'qrcode';
+import fileUpload from 'express-fileupload';
+import axios  from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { body, validationResult } from 'express-validator';
+import { mime } from 'mime-types';
+import { schedule } from 'node-schedule';
+import { google } from 'googleapis';
+const app =  express();
 const server = http.createServer(app);
 const io = socketIO(server);
-const schedule = require('node-schedule');
-const fs = require('fs');
-const path = require('path');
-const { google } = require('googleapis');
-
-// Function Groups Import
-const changeGroupName = require('./modules/groups/changeGroupName.js');
-const welcomeNewMembers = require('./modules/groups/welcomeNewMembers.js');
-const sendAlertMessage = require('./modules/groups/sendAlertMessage.js');
-const ghostMentions = require('./modules/groups/ghostMentions.js');
-const markAll = require('./modules/groups/markAll.js');
-
-// Utils Import
-const cleanMessages = require('./modules/utils/cleanMessages.js');
-const help = require('./modules/utils/help.js');
-const contact = require('./modules/utils/contact.js');
-const ping = require('./modules/utils/ping.js');
-const addPlayer = require('./model/player/addplayers.js');
-const deactivatePlayerByID = require('./model/player/deactivatePlayerByID.js');
-const deactivatePlayerByPhone = require('./model/player/deactivatePlayerByPhone.js');
-const activatePlayerByID = require('./model/player/activatePlayerByID.js');
-const activatePlayerByPhone = require('./model/player/activatePlayerByPhone.js');
-const saveImageToDrive = require('./modules/utils/saveImageToDrive');
+const port = process.env.PORT || 8000;
+// Function Groups Impo
+import { changeGroupName } from '../modules/groups/changeGroupName.js';
+import { welcomeNewMembers } from '../modules/groups/welcomeNewMembers.js';
+import { sendAlertMessage } from '../modules/groups/sendAlertMessage.js';
+import { ghostMentions } from '../modules/groups/ghostMentions.js';
+import { markAll } from '../modules/groups/markAll.js';
+// Utils Impo;
+import { cleanMessages } from '../modules/utils/cleanMessages.js';
+import { help } from '../modules/utils/help.js';
+import { contact } from '../modules/utils/contact.js';
+import { ping } from '../modules/utils/ping.js';
+import { addPlayer } from '../model/player/addplayers.js';
+import { deactivatePlayerByID } from '../model/player/deactivatePlayerByID.js';
+import { deactivatePlayerByPhone } from '../model/player/deactivatePlayerByPhone.js';
+import { activatePlayerByID } from '../model/player/activatePlayerByID.js';
+import { activatePlayerByPhone } from '../model/player/activatePlayerByPhone.js';
+import { saveImageToDrive } from '../modules/utils/saveImageToDrive.js';
 
 //GPT Functions Import
-const gptEneas = require('./modules/gptFunctions/gptEneas.js');
-const chatGPT = require('./modules/gptFunctions/chatGPT.js');
+import { gptEneas } from '../modules/gptFunctions/gptEneas.js';
+import { chatGPT } from '../modules/gptFunctions/chatGPT.js';
 
 //General Messages Import
-const guildInfo = require('./modules/messages/guildInfo.js');
+import { guildInfo } from '../modules/messages/guildInfo.js';
 
 function delay(t, v) {
   return new Promise(function(resolve) { 
@@ -64,7 +63,7 @@ app.get('/', (req, res) => {
 });
 
 const client = new Client({
-  authStrategy: new LocalAuth({ clientId: 'botShaka' }),
+  authStrategy: new LocalAuth({ clientId: 'botAlphAI' }),
   puppeteer: { headless: true,
     args: [
       '--no-sandbox',
@@ -83,42 +82,42 @@ client.setMaxListeners(20);
 client.initialize();
 
 io.on('connection', function(socket) {
-  socket.emit('message', 'BotShaka - Iniciado');
+  socket.emit('message', 'botAlphAI - Iniciado');
   socket.emit('qr', './loading.svg');
 
   client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit('qr', url);
-      socket.emit('message', '© BotShaka QRCode recebido, aponte a câmera  seu celular!');
+      socket.emit('message', '© botAlphAI QRCode recebido, aponte a câmera  seu celular!');
     });
   });
 
   client.on('ready', () => {
-    socket.emit('ready', 'BotShaka Dispositivo pronto!');
-    socket.emit('message', 'BotShaka Dispositivo pronto!');
+    socket.emit('ready', 'botAlphAI Dispositivo pronto!');
+    socket.emit('message', 'botAlphAI Dispositivo pronto!');
     socket.emit('qr', './check.svg');
-    console.log('BotShaka Dispositivo pronto');
+    console.log('botAlphAI Dispositivo pronto');
   });
 
   client.on('authenticated', () => {
-    socket.emit('authenticated', 'BotShaka Autenticado!');
-    socket.emit('message', 'BotShaka Autenticado!');
-    console.log('BotShaka Autenticado');
+    socket.emit('authenticated', 'botAlphAI Autenticado!');
+    socket.emit('message', 'botAlphAI Autenticado!');
+    console.log('botAlphAI Autenticado');
   });
 
   client.on('auth_failure', function() {
-    socket.emit('message', 'BotShaka Falha na autenticação, reiniciando...');
-    console.error('BotShaka Falha na autenticação');
+    socket.emit('message', 'botAlphAI Falha na autenticação, reiniciando...');
+    console.error('botAlphAI Falha na autenticação');
   });
 
   client.on('change_state', state => {
-    console.log('BotShaka Status de conexão: ', state );
+    console.log('botAlphAI Status de conexão: ', state );
   });
 
   client.on('disconnected', (reason) => {
-    socket.emit('message', 'BotShaka Cliente desconectado!');
-    console.log('BotShaka Cliente desconectado', reason);
+    socket.emit('message', 'botAlphAI Cliente desconectado!');
+    console.log('botAlphAI Cliente desconectado', reason);
     client.initialize();
   });
 });
@@ -189,6 +188,7 @@ client.on('ready', async () => {
 const apiUrl = 'https://api.openai.com/v1/chat/completions';
 const apiKey = 'sk-proj-4kL6glBZCaMmJvZ8qGatT3BlbkFJ3voUusLaZaQ9iIe3W498';
 
+
 const recommendationsFilePath = path.join(__dirname, 'recomendationsEneas.txt');
 const recommendationsText = fs.readFileSync(recommendationsFilePath, 'utf8');
 
@@ -199,9 +199,6 @@ const truncateText = (text, maxLength) => {
   }
   return text;
 };
-
-// Definimos um limite de 4000 caracteres para garantir que não exceda o limite de tokens
-//const truncatedRecommendationsText = truncateText(recommendationsText, 4000);
 
 const chatGPTRequest = async (message) => {
   try {
@@ -241,5 +238,5 @@ client.on('message', async (msg) => {
 });
 
 server.listen(port, function() {
-  console.log(`BotShaka está rodando na porta ${port}`);
+  console.log(`botAlphAI está rodando na porta ${port}`);
 });

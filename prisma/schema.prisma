@@ -1,0 +1,59 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model ErpPlayer {
+  id       Int      @id // ID fornecido manualmente
+  uuid     String   @default(uuid()) // UUID gerado automaticamente
+  nick     String
+  name     String
+  phone    String   @unique
+  is_active Boolean  @default(true)
+  is_adm   Boolean  @default(false)
+  gvg      ErpGvg[]
+  relics   ErpRelicsPlayersTeam[]
+  relicsDmg ErpRelicsDmg[]
+}
+
+model ErpGvg {
+  id                Int     @id // ID fornecido manualmente
+  uuid              String  @default(uuid()) // UUID gerado automaticamente
+  is_gvg            Boolean @default(false)
+  fixed             Boolean @default(false)
+  rotation          Boolean @default(false)
+  playerId          Int
+  player            ErpPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+}
+
+model ErpRelicsTeam {
+  id        Int     @id // ID fornecido manualmente
+  uuid      String  @default(uuid()) // UUID gerado automaticamente
+  team      String
+  playersTeam ErpRelicsPlayersTeam[]
+}
+
+model ErpRelicsPlayersTeam {
+  id                Int     @id // ID fornecido manualmente
+  uuid              String  @default(uuid()) // UUID gerado automaticamente
+  teamId            Int
+  playerId          Int
+  team              ErpRelicsTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player            ErpPlayer     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+}
+
+model ErpRelicsDmg {
+  id                Int     @id // ID fornecido manualmente
+  uuid              String  @default(uuid()) // UUID gerado automaticamente
+  session           String
+  boss              String
+  damage            String
+  playerId          Int
+  relicsPlayersTeamId Int
+  player            ErpPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  relicsPlayersTeam ErpRelicsPlayersTeam @relation(fields: [relicsPlayersTeamId], references: [id], onDelete: Cascade)
+}
