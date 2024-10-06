@@ -1,12 +1,12 @@
 {
   "name": "bot-shaka",
   "version": "1.0.0",
-  "description": "BotShaka: based on Whatsapp API",
+  "description": "BotAlphAI: based on Whatsapp API",
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "start": "tsc && node dist/botshaka.js",
-    "start:dev": "nodemon botshaka.js",
+    "start": "tsc && node dist/botAlphAI.js",
+    "start:dev": "nodemon botAlphAI.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

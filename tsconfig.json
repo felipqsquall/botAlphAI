@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
-    "module": "CommonJS",
-    "strict": true,
-    "esModuleInterop": true,
+    "moduleResolution": "node",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "module": "es2020", // ou 'node16' ou 'esnext'
+    "target": "ES2020", // ou 'esnext'
     "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+    "rootDir": "./src",
+    "esModuleInterop": true,
+    "strict": false, 
+    "forceConsistentCasingInFileNames": true
+  }
 }

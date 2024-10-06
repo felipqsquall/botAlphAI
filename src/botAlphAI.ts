@@ -16,30 +16,32 @@ const app =  express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const port = process.env.PORT || 8000;
+import { fileURLToPath } from 'url';
+
 // Function Groups Impo
-import { changeGroupName } from '../modules/groups/changeGroupName.js';
-import { welcomeNewMembers } from '../modules/groups/welcomeNewMembers.js';
-import { sendAlertMessage } from '../modules/groups/sendAlertMessage.js';
-import { ghostMentions } from '../modules/groups/ghostMentions.js';
-import { markAll } from '../modules/groups/markAll.js';
+import { changeGroupName } from './services/group/changeGroupName.js';
+import { welcomeNewMembers } from './services/group/welcomeNewMembers.js';
+import { sendAlertMessage } from './services/group/sendAlertMessage.js';
+import { ghostMentions } from './services/group/ghostMentions.js';
+import { markAll } from './services/group/markAll.js';
 // Utils Impo;
-import { cleanMessages } from '../modules/utils/cleanMessages.js';
-import { help } from '../modules/utils/help.js';
-import { contact } from '../modules/utils/contact.js';
-import { ping } from '../modules/utils/ping.js';
-import { addPlayer } from '../model/player/addplayers.js';
-import { deactivatePlayerByID } from '../model/player/deactivatePlayerByID.js';
-import { deactivatePlayerByPhone } from '../model/player/deactivatePlayerByPhone.js';
-import { activatePlayerByID } from '../model/player/activatePlayerByID.js';
-import { activatePlayerByPhone } from '../model/player/activatePlayerByPhone.js';
-import { saveImageToDrive } from '../modules/utils/saveImageToDrive.js';
+import { cleanMessages } from './services/utils/cleanMessages.js';
+import { help } from './services/utils/help.js';
+import { contact } from './services/utils/contact.js';
+import { ping } from './services/utils/ping.js';
+import { addPlayer } from './model/player/addPlayer.js';
+import { deactivatePlayerByID } from './model/player/deactivatePlayerByID.js';
+import { deactivatePlayerByPhone } from './model/player/deactivatePlayerByPhone.js';
+import { activatePlayerByID } from './model/player/activatePlayerByID.js';
+import { activatePlayerByPhone } from './model/player/activatePlayerByPhone.js';
+import { saveImageToDrive } from './services/utils/saveImageToDrive.js';
 
 //GPT Functions Import
 import { gptEneas } from '../modules/gptFunctions/gptEneas.js';
 import { chatGPT } from '../modules/gptFunctions/chatGPT.js';
 
 //General Messages Import
-import { guildInfo } from '../modules/messages/guildInfo.js';
+import { guildInfo } from './services/guild/guildInfo.js';
 
 function delay(t, v) {
   return new Promise(function(resolve) { 
@@ -54,17 +56,20 @@ app.use(express.urlencoded({
 app.use(fileUpload({
   debug: false
 }));
-app.use("/", express.static(__dirname + "/"))
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use("/", express.static(__dirname + "/"));
 
 app.get('/', (req, res) => {
-  res.sendFile('index.html', {
-    root: __dirname
-  });
+  res.sendFile(path.join(__dirname, '../', 'index.html'));
 });
 
 const client = new Client({
   authStrategy: new LocalAuth({ clientId: 'botAlphAI' }),
   puppeteer: { headless: true,
+    executablePath: '/usr/bin/chromium',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -83,7 +88,7 @@ client.initialize();
 
 io.on('connection', function(socket) {
   socket.emit('message', 'botAlphAI - Iniciado');
-  socket.emit('qr', './loading.svg');
+  socket.emit('qr', '../loading.svg');
 
   client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
@@ -96,7 +101,7 @@ io.on('connection', function(socket) {
   client.on('ready', () => {
     socket.emit('ready', 'botAlphAI Dispositivo pronto!');
     socket.emit('message', 'botAlphAI Dispositivo pronto!');
-    socket.emit('qr', './check.svg');
+    socket.emit('qr', '../check.svg');
     console.log('botAlphAI Dispositivo pronto');
   });
 
@@ -189,7 +194,7 @@ const apiUrl = 'https://api.openai.com/v1/chat/completions';
 const apiKey = 'sk-proj-4kL6glBZCaMmJvZ8qGatT3BlbkFJ3voUusLaZaQ9iIe3W498';
 
 
-const recommendationsFilePath = path.join(__dirname, 'recomendationsEneas.txt');
+const recommendationsFilePath = path.join(__dirname, '../recomendationsEneas.txt');
 const recommendationsText = fs.readFileSync(recommendationsFilePath, 'utf8');
 
 // Função para truncar o texto das recomendações

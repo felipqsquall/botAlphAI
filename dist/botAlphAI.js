@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg;
 import express from 'express';
@@ -21,25 +12,26 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const port = process.env.PORT || 8000;
+import { fileURLToPath } from 'url';
 // Function Groups Impo
-import { changeGroupName } from '../modules/groups/changeGroupName.js';
-import { welcomeNewMembers } from '../modules/groups/welcomeNewMembers.js';
-import { sendAlertMessage } from '../modules/groups/sendAlertMessage.js';
-import { ghostMentions } from '../modules/groups/ghostMentions.js';
-import { markAll } from '../modules/groups/markAll.js';
+import { changeGroupName } from './services/group/changeGroupName.js';
+import { welcomeNewMembers } from './services/group/welcomeNewMembers.js';
+import { sendAlertMessage } from './services/group/sendAlertMessage.js';
+import { ghostMentions } from './services/group/ghostMentions.js';
+import { markAll } from './services/group/markAll.js';
 // Utils Impo;
-import { cleanMessages } from '../modules/utils/cleanMessages.js';
-import { help } from '../modules/utils/help.js';
-import { contact } from '../modules/utils/contact.js';
-import { ping } from '../modules/utils/ping.js';
-import { addPlayer } from '../model/player/addplayers.js';
-import { deactivatePlayerByID } from '../model/player/deactivatePlayerByID.js';
-import { deactivatePlayerByPhone } from '../model/player/deactivatePlayerByPhone.js';
-import { activatePlayerByID } from '../model/player/activatePlayerByID.js';
-import { activatePlayerByPhone } from '../model/player/activatePlayerByPhone.js';
-import { saveImageToDrive } from '../modules/utils/saveImageToDrive.js';
+import { cleanMessages } from './services/utils/cleanMessages.js';
+import { help } from './services/utils/help.js';
+import { contact } from './services/utils/contact.js';
+import { ping } from './services/utils/ping.js';
+import { addPlayer } from './model/player/addPlayer.js';
+import { deactivatePlayerByID } from './model/player/deactivatePlayerByID.js';
+import { deactivatePlayerByPhone } from './model/player/deactivatePlayerByPhone.js';
+import { activatePlayerByID } from './model/player/activatePlayerByID.js';
+import { activatePlayerByPhone } from './model/player/activatePlayerByPhone.js';
+import { saveImageToDrive } from './services/utils/saveImageToDrive.js';
 //General Messages Import
-import { guildInfo } from '../modules/messages/guildInfo.js';
+import { guildInfo } from './services/guild/guildInfo.js';
 function delay(t, v) {
     return new Promise(function (resolve) {
         setTimeout(resolve.bind(null, v), t);
@@ -52,15 +44,16 @@ app.use(express.urlencoded({
 app.use(fileUpload({
     debug: false
 }));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 app.use("/", express.static(__dirname + "/"));
 app.get('/', (req, res) => {
-    res.sendFile('index.html', {
-        root: __dirname
-    });
+    res.sendFile(path.join(__dirname, '../', 'index.html'));
 });
 const client = new Client({
     authStrategy: new LocalAuth({ clientId: 'botAlphAI' }),
     puppeteer: { headless: true,
+        executablePath: '/usr/bin/chromium',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -76,7 +69,7 @@ client.setMaxListeners(20);
 client.initialize();
 io.on('connection', function (socket) {
     socket.emit('message', 'botAlphAI - Iniciado');
-    socket.emit('qr', './loading.svg');
+    socket.emit('qr', '../loading.svg');
     client.on('qr', (qr) => {
         console.log('QR RECEIVED', qr);
         qrcode.toDataURL(qr, (err, url) => {
@@ -87,7 +80,7 @@ io.on('connection', function (socket) {
     client.on('ready', () => {
         socket.emit('ready', 'botAlphAI Dispositivo pronto!');
         socket.emit('message', 'botAlphAI Dispositivo pronto!');
-        socket.emit('qr', './check.svg');
+        socket.emit('qr', '../check.svg');
         console.log('botAlphAI Dispositivo pronto');
     });
     client.on('authenticated', () => {
@@ -112,7 +105,7 @@ io.on('connection', function (socket) {
 const groupId = '120363198603699526@g.us'; // ID do grupo que você quer monitorar
 const alertCloseTimes = ['13:00', '14:30', '15:00', '16:30', '17:00']; // Horários de alerta para Ataque de Grupo
 const groupNameChangeTime = '22:30'; // Horário para alterar o nome do grupo
-client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
+client.on('ready', async () => {
     // Chama a função para limpar as mensagens
     cleanMessages(client);
     // Chama a função para alterar o nome do grupo
@@ -149,10 +142,10 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
     activatePlayerByID(client);
     // Chama a função para ativar um jogador pelo Telefone
     activatePlayerByPhone(client);
-}));
+});
 const apiUrl = 'https://api.openai.com/v1/chat/completions';
 const apiKey = 'sk-proj-4kL6glBZCaMmJvZ8qGatT3BlbkFJ3voUusLaZaQ9iIe3W498';
-const recommendationsFilePath = path.join(__dirname, 'recomendationsEneas.txt');
+const recommendationsFilePath = path.join(__dirname, '../recomendationsEneas.txt');
 const recommendationsText = fs.readFileSync(recommendationsFilePath, 'utf8');
 // Função para truncar o texto das recomendações
 const truncateText = (text, maxLength) => {
@@ -161,14 +154,14 @@ const truncateText = (text, maxLength) => {
     }
     return text;
 };
-const chatGPTRequest = (message) => __awaiter(void 0, void 0, void 0, function* () {
+const chatGPTRequest = async (message) => {
     try {
         const messages = [
             { role: 'system', content: 'Você é um assistente que responde com base nas seguintes recomendações de um jogo de celular, falando de maneira bem informal e pode usar palavrões e gírias.' },
             { role: 'system', content: `Texto de Recomendações: ${recommendationsText}` }, //${truncatedRecommendationsText}
             { role: 'user', content: `Baseando-se exclusivamente nas recomendações fornecidas, responda à seguinte pergunta: ${message}` },
         ];
-        const response = yield axios.post(apiUrl, {
+        const response = await axios.post(apiUrl, {
             model: 'chatgpt-4o-latest',
             messages: messages
         }, {
@@ -183,14 +176,14 @@ const chatGPTRequest = (message) => __awaiter(void 0, void 0, void 0, function* 
     catch (error) {
         console.error('Erro ao chamar a API do ChatGPT:', error.response ? error.response.data : error.message);
     }
-});
-client.on('message', (msg) => __awaiter(void 0, void 0, void 0, function* () {
+};
+client.on('message', async (msg) => {
     if (msg.body.startsWith('!gpt')) {
         const mensagem = msg.body.replace('!gpt', '').trim();
-        const reply = yield chatGPTRequest(mensagem);
+        const reply = await chatGPTRequest(mensagem);
         client.sendMessage(msg.from, reply);
     }
-}));
+});
 server.listen(port, function () {
     console.log(`botAlphAI está rodando na porta ${port}`);
 });

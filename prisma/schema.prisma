@@ -4,8 +4,11 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
+
+
 
 model ErpPlayer {
   id       Int      @id // ID fornecido manualmente
@@ -38,22 +41,23 @@ model ErpRelicsTeam {
 }
 
 model ErpRelicsPlayersTeam {
-  id                Int     @id // ID fornecido manualmente
-  uuid              String  @default(uuid()) // UUID gerado automaticamente
+  id                Int                  @id // ID fornecido manualmente
+  uuid              String               @default(uuid()) // UUID gerado automaticamente
   teamId            Int
   playerId          Int
-  team              ErpRelicsTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  player            ErpPlayer     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  team              ErpRelicsTeam        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player            ErpPlayer            @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  relicsDmg         ErpRelicsDmg[]       @relation("RelicsDmgToPlayersTeam") // Relacionamento bidirecional
 }
 
 model ErpRelicsDmg {
-  id                Int     @id // ID fornecido manualmente
-  uuid              String  @default(uuid()) // UUID gerado automaticamente
+  id                Int                  @id // ID fornecido manualmente
+  uuid              String               @default(uuid()) // UUID gerado automaticamente
   session           String
   boss              String
   damage            String
   playerId          Int
   relicsPlayersTeamId Int
-  player            ErpPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  relicsPlayersTeam ErpRelicsPlayersTeam @relation(fields: [relicsPlayersTeamId], references: [id], onDelete: Cascade)
+  player            ErpPlayer            @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  relicsPlayersTeam ErpRelicsPlayersTeam @relation(fields: [relicsPlayersTeamId], references: [id], onDelete: Cascade, name: "RelicsDmgToPlayersTeam")
 }
